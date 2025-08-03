@@ -144,8 +144,8 @@ def launch_webui():
     os.chdir("sd-webui")
     print("🚀 Launching WebUI...")
     
-    # RunPod-specific flags for public access
-    runpod_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --xformers"
+    # RunPod-specific flags for public access (xFormers disabled due to CUDA compatibility)
+    runpod_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --opt-split-attention --medvram"
     
     # Check if running on RunPod (common environment variables)
     if os.environ.get("RUNPOD_POD_ID") or os.environ.get("RUNPOD_PUBLIC_IP"):
@@ -153,7 +153,7 @@ def launch_webui():
         os.environ["COMMANDLINE_ARGS"] = runpod_flags
     else:
         print("💻 Local environment detected")
-        os.environ["COMMANDLINE_ARGS"] = "--xformers --enable-insecure-extension-access --theme dark"
+        os.environ["COMMANDLINE_ARGS"] = "--opt-split-attention --enable-insecure-extension-access --theme dark"
     
     subprocess.run(["python3", "launch.py"])
 
