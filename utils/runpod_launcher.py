@@ -14,6 +14,7 @@ def check_gpu_compatibility():
             gpu_capability = torch.cuda.get_device_capability(0)
             print(f"🔍 GPU detected: {gpu_name}")
             print(f"🔍 CUDA capability: sm_{gpu_capability[0]}{gpu_capability[1]}")
+            print(f"🔍 PyTorch version: {torch.__version__}")
             
             # Check for RTX 5090 specifically
             if "RTX 5090" in gpu_name or gpu_capability >= (9, 0):
@@ -25,6 +26,20 @@ def check_gpu_compatibility():
     except Exception as e:
         print(f"⚠️  GPU check failed: {e}")
     return False
+
+def install_pytorch_nightly():
+    """Install PyTorch nightly for RTX 5090 support"""
+    print("🔄 Installing PyTorch nightly for RTX 5090 support...")
+    try:
+        subprocess.run([
+            "pip", "install", "--pre", "torch", "torchvision", "torchaudio", 
+            "--index-url", "https://download.pytorch.org/whl/nightly/cu124"
+        ], check=True)
+        print("✅ PyTorch nightly installed successfully")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to install PyTorch nightly: {e}")
+        return False
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -170,21 +185,33 @@ def launch_webui():
     
     # RTX 5090 compatibility settings
     if is_high_end_gpu:
+        print("🔧 Applying RTX 5090 compatibility settings...")
         os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+        os.environ["TORCH_USE_CUDA_DSA"] = "1"
         os.environ["TORCH_CUDA_ARCH_LIST"] = "5.0;6.0;7.0;7.5;8.0;8.6;9.0"
         os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256,expandable_segments:True"
-        print("🔧 Applied high-end GPU compatibility settings")
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+        os.environ["FORCE_CUDA"] = "1"
+        print("✅ Applied RTX 5090 compatibility settings")
     
     # RunPod-specific flags for public access (xFormers disabled due to CUDA compatibility)
-    runpod_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --opt-split-attention --medvram --precision=full --no-half"
+    base_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --opt-split-attention --medvram --precision=full --no-half"
+    
+    # Add CPU mode if CUDA is disabled
+    if os.environ.get("FORCE_CPU") == "1":
+        base_flags += " --use-cpu all --skip-torch-cuda-test"
+        print("💻 CPU fallback mode enabled")
     
     # Check if running on RunPod (common environment variables)
     if os.environ.get("RUNPOD_POD_ID") or os.environ.get("RUNPOD_PUBLIC_IP"):
         print("🌐 Detected RunPod environment - enabling public access")
-        os.environ["COMMANDLINE_ARGS"] = runpod_flags
+        os.environ["COMMANDLINE_ARGS"] = base_flags
     else:
         print("💻 Local environment detected")
-        os.environ["COMMANDLINE_ARGS"] = "--opt-split-attention --enable-insecure-extension-access --theme dark --precision=full --no-half"
+        local_flags = "--opt-split-attention --enable-insecure-extension-access --theme dark --precision=full --no-half"
+        if os.environ.get("FORCE_CPU") == "1":
+            local_flags += " --use-cpu all --skip-torch-cuda-test"
+        os.environ["COMMANDLINE_ARGS"] = local_flags
     
     subprocess.run(["python3", "launch.py"])
 
@@ -194,8 +221,22 @@ def main():
     parser.add_argument('--setup-only', action='store_true', help='Тільки налаштування (без завантаження моделей і запуску)')
     parser.add_argument('--launch', action='store_true', help='Тільки запуск WebUI (без setup)')
     parser.add_argument('--download-only', action='store_true', help='Тільки завантаження моделей')
+    parser.add_argument('--fix-pytorch', action='store_true', help='Встановити PyTorch nightly для RTX 5090')
+    parser.add_argument('--cpu-fallback', action='store_true', help='Використати CPU замість CUDA')
     
     args = parser.parse_args()
+    
+    # Handle RTX 5090 fixes
+    if args.fix_pytorch:
+        print("🔧 Fixing PyTorch for RTX 5090...")
+        install_pytorch_nightly()
+        return
+    
+    # Handle CPU fallback
+    if args.cpu_fallback:
+        print("💻 Enabling CPU fallback mode...")
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        os.environ["FORCE_CPU"] = "1"
     
     if args.launch:
         # Тільки запуск WebUI
