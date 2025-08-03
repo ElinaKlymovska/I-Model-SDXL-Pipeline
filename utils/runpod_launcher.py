@@ -5,6 +5,27 @@ import yaml
 import logging
 import argparse
 
+def check_gpu_compatibility():
+    """Check GPU compatibility and provide diagnostics"""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            gpu_name = torch.cuda.get_device_name(0)
+            gpu_capability = torch.cuda.get_device_capability(0)
+            print(f"🔍 GPU detected: {gpu_name}")
+            print(f"🔍 CUDA capability: sm_{gpu_capability[0]}{gpu_capability[1]}")
+            
+            # Check for RTX 5090 specifically
+            if "RTX 5090" in gpu_name or gpu_capability >= (9, 0):
+                print("⚠️  High-end GPU detected - using compatibility mode")
+                return True
+        else:
+            print("❌ No CUDA GPU detected")
+            return False
+    except Exception as e:
+        print(f"⚠️  GPU check failed: {e}")
+    return False
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -144,8 +165,18 @@ def launch_webui():
     os.chdir("sd-webui")
     print("🚀 Launching WebUI...")
     
+    # Check GPU compatibility
+    is_high_end_gpu = check_gpu_compatibility()
+    
+    # RTX 5090 compatibility settings
+    if is_high_end_gpu:
+        os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
+        os.environ["TORCH_CUDA_ARCH_LIST"] = "5.0;6.0;7.0;7.5;8.0;8.6;9.0"
+        os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256,expandable_segments:True"
+        print("🔧 Applied high-end GPU compatibility settings")
+    
     # RunPod-specific flags for public access (xFormers disabled due to CUDA compatibility)
-    runpod_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --opt-split-attention --medvram"
+    runpod_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --opt-split-attention --medvram --precision=full --no-half"
     
     # Check if running on RunPod (common environment variables)
     if os.environ.get("RUNPOD_POD_ID") or os.environ.get("RUNPOD_PUBLIC_IP"):
@@ -153,7 +184,7 @@ def launch_webui():
         os.environ["COMMANDLINE_ARGS"] = runpod_flags
     else:
         print("💻 Local environment detected")
-        os.environ["COMMANDLINE_ARGS"] = "--opt-split-attention --enable-insecure-extension-access --theme dark"
+        os.environ["COMMANDLINE_ARGS"] = "--opt-split-attention --enable-insecure-extension-access --theme dark --precision=full --no-half"
     
     subprocess.run(["python3", "launch.py"])
 
