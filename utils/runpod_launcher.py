@@ -16,16 +16,20 @@ def check_gpu_compatibility():
             print(f"🔍 CUDA capability: sm_{gpu_capability[0]}{gpu_capability[1]}")
             print(f"🔍 PyTorch version: {torch.__version__}")
             
-            # Check for RTX 5090 specifically
-            if "RTX 5090" in gpu_name or gpu_capability >= (9, 0):
+            # Check for RTX 5090 specifically - force CPU mode due to incompatibility
+            if "RTX 5090" in gpu_name or gpu_capability >= (12, 0):
+                print("⚠️  RTX 5090 detected - PyTorch incompatible, forcing CPU mode")
+                return "force_cpu"
+            elif gpu_capability >= (9, 0):
                 print("⚠️  High-end GPU detected - using compatibility mode")
-                return True
+                return "high_end"
         else:
             print("❌ No CUDA GPU detected")
             return False
     except Exception as e:
         print(f"⚠️  GPU check failed: {e}")
-    return False
+        return False
+    return "normal"
 
 def install_pytorch_nightly():
     """Install PyTorch nightly for RTX 5090 support"""
@@ -40,6 +44,22 @@ def install_pytorch_nightly():
     except subprocess.CalledProcessError as e:
         print(f"❌ Failed to install PyTorch nightly: {e}")
         return False
+
+def launch_webui_with_fallback():
+    """Launch WebUI with automatic fallback to CPU mode if CUDA fails"""
+    # Pre-check GPU compatibility
+    gpu_compatibility = check_gpu_compatibility()
+    
+    if gpu_compatibility == "force_cpu":
+        print("🚫 RTX 5090 detected - automatically using CPU mode")
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        os.environ["FORCE_CPU"] = "1"
+        print("💻 CPU mode activated for RTX 5090 - generation will be slower but stable")
+        launch_webui()
+    else:
+        # Try launching normally first
+        print("🚀 Launching WebUI with GPU support...")
+        launch_webui()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -181,18 +201,29 @@ def launch_webui():
     print("🚀 Launching WebUI...")
     
     # Check GPU compatibility
-    is_high_end_gpu = check_gpu_compatibility()
+    gpu_compatibility = check_gpu_compatibility()
     
-    # RTX 5090 compatibility settings
-    if is_high_end_gpu:
-        print("🔧 Applying RTX 5090 compatibility settings...")
+    # Handle different GPU compatibility modes
+    if gpu_compatibility == "force_cpu":
+        print("🚫 RTX 5090 detected - forcing CPU mode due to PyTorch incompatibility")
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        os.environ["FORCE_CPU"] = "1"
+        print("💻 CPU mode activated for RTX 5090")
+    elif gpu_compatibility == "high_end":
+        print("🔧 Applying high-end GPU compatibility settings...")
         os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
         os.environ["TORCH_USE_CUDA_DSA"] = "1"
         os.environ["TORCH_CUDA_ARCH_LIST"] = "5.0;6.0;7.0;7.5;8.0;8.6;9.0"
         os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256,expandable_segments:True"
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
         os.environ["FORCE_CUDA"] = "1"
-        print("✅ Applied RTX 5090 compatibility settings")
+        print("✅ Applied high-end GPU compatibility settings")
+    elif gpu_compatibility == "normal":
+        print("✅ Normal GPU detected - using standard settings")
+    else:
+        print("⚠️  GPU compatibility unknown - using safe mode")
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+        os.environ["FORCE_CPU"] = "1"
     
     # RunPod-specific flags for public access (xFormers disabled due to CUDA compatibility)
     base_flags = "--listen --port 3000 --enable-insecure-extension-access --theme dark --opt-split-attention --medvram --precision=full --no-half"
@@ -223,6 +254,8 @@ def main():
     parser.add_argument('--download-only', action='store_true', help='Тільки завантаження моделей')
     parser.add_argument('--fix-pytorch', action='store_true', help='Встановити PyTorch nightly для RTX 5090')
     parser.add_argument('--cpu-fallback', action='store_true', help='Використати CPU замість CUDA')
+    parser.add_argument('--force-cpu-rtx5090', action='store_true', help='Завжди використовувати CPU для RTX 5090 (рекомендовано)')
+    parser.add_argument('--reset-cuda', action='store_true', help='Скинути всі CUDA налаштування')
     
     args = parser.parse_args()
     
@@ -232,16 +265,29 @@ def main():
         install_pytorch_nightly()
         return
     
-    # Handle CPU fallback
-    if args.cpu_fallback:
+    # Handle CUDA reset
+    if args.reset_cuda:
+        print("🔄 Resetting CUDA environment...")
+        cuda_vars = ["CUDA_VISIBLE_DEVICES", "FORCE_CPU", "FORCE_CUDA", "CUDA_LAUNCH_BLOCKING", 
+                    "TORCH_USE_CUDA_DSA", "TORCH_CUDA_ARCH_LIST", "PYTORCH_CUDA_ALLOC_CONF"]
+        for var in cuda_vars:
+            if var in os.environ:
+                del os.environ[var]
+        print("✅ CUDA environment reset")
+        return
+    
+    # Handle CPU fallback modes
+    if args.cpu_fallback or args.force_cpu_rtx5090:
         print("💻 Enabling CPU fallback mode...")
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
         os.environ["FORCE_CPU"] = "1"
+        if args.force_cpu_rtx5090:
+            print("⚠️  RTX 5090 CPU mode enabled - generation will be slower but stable")
     
     if args.launch:
-        # Тільки запуск WebUI
+        # Тільки запуск WebUI з автоматичним fallback
         print("🚀 Запуск Stable Diffusion WebUI...")
-        launch_webui()
+        launch_webui_with_fallback()
         return
     
     # Setup фаза
@@ -263,9 +309,9 @@ def main():
         print("✅ Завантаження моделей завершено!")
         return
     
-    # Повний запуск
+    # Повний запуск з автоматичним fallback
     print("🌐 Запуск Stable Diffusion WebUI...")
-    launch_webui()
+    launch_webui_with_fallback()
 
 if __name__ == "__main__":
     main()
