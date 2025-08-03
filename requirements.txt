@@ -1,0 +1,20 @@
+# Core dependencies for RunPod launcher
+requests>=2.31.0
+python-dotenv>=1.0.0
+PyYAML>=6.0.0
+
+# Image processing (for pipeline scripts)
+Pillow>=11.0.0
+numpy>=1.26.0
+opencv-python>=4.8.0
+
+# ML dependencies (for identity metrics - optional)
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.30.0
+scikit-image>=0.20.0
+
+# Identity metrics (install manually if needed due to compilation issues)
+# git+https://github.com/openai/CLIP.git  # For CLIP similarity
+# face-recognition  # For face comparison (requires dlib)
+# insightface       # Alternative face recognition

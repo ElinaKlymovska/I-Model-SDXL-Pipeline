@@ -1,0 +1,160 @@
+models:
+  epicrealism_xl:
+    name: epiCRealism XL (VXVII - CrystalClear)
+    path: models/epiCRealismXL_VXVII_CrystalClear.safetensors
+    model_page: https://civitai.com/models/277058
+    download_url: https://civitai.com/api/download/models/1920523?type=Model&format=SafeTensor
+    alternative_urls:
+      - https://civitai.com/api/download/models/489217?type=Model&format=SafeTensor  # V7-Final Destination
+      - https://civitai.com/api/download/models/956266?type=Model&format=SafeTensor  # VXVI-LastFAME fallback
+    description: Top-tier photorealism SDXL checkpoint by epinikion; extremely detailed skin, lighting, micro‑expressions (latest CrystalClear version)
+    recommended_cfg: 5‑7
+    recommended_steps: 25‑40
+    sampler: "DPM++ 2M Karras"
+    strength: 0.4
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 20
+    speciality: "photorealistic_portraits"
+    file_size: "6.46 GB"
+
+  realvisxl_v5_lightning:
+    name: RealVisXL V5.0 Lightning
+    path: models/RealVisXL_V5_Lightning.safetensors
+    model_page: https://civitai.com/models/139562
+    download_url: https://civitai.com/api/download/models/798204?type=Model&format=SafeTensor
+    alternative_urls:
+      - https://huggingface.co/SG161222/RealVisXL_V4.0/resolve/main/RealVisXL_V4.0.safetensors  # V4.0 fallback
+    description: Cinematic portrait‑focused SDXL model optimized for face anatomy, soft edges, expressive realism (Lightning version)
+    recommended_cfg: 1.5
+    recommended_steps: 5‑30
+    sampler: "DPM++ SDE Karras"
+    strength: 0.3
+    hires_fix: true
+    hires_upscaler: "ESRGAN_4x"
+    hires_steps: 15
+    speciality: "fast_lightning_generation"
+    file_size: "6.46 GB"
+
+  juggernaut_xl_v9:
+    name: Juggernaut XL v9 (RunDiffusion)
+    path: models/Juggernaut_XL_v9.safetensors
+    model_page: https://huggingface.co/RunDiffusion/Juggernaut-XL-v9
+    download_url: https://huggingface.co/RunDiffusion/Juggernaut-XL-v9/resolve/main/Juggernaut_XL_v9.safetensors
+    alternative_urls:
+      - https://civitai.com/api/download/models/456194?type=Model&format=SafeTensor  # CivitAI backup
+    description: Versatile and highly realistic SDXL checkpoint (v9) with photographic lighting, skin detail, environment fidelity
+    recommended_cfg: 3‑7
+    recommended_steps: 30‑40
+    sampler: "DPM++ 2M Karras"
+    strength: 0.4
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 25
+    speciality: "versatile_realism"
+    file_size: "6.62 GB"
+
+  realism_engine_sdxl:
+    name: Realism Engine SDXL v3.0
+    path: models/RealismEngine_SDXL_v30.safetensors
+    model_page: https://civitai.com/models/152525
+    download_url: https://civitai.com/api/download/models/336875?type=Model&format=SafeTensor
+    description: Ultra-realistic SDXL model specialized in photographic quality, skin textures, and natural lighting
+    recommended_cfg: 7‑9
+    recommended_steps: 30‑50
+    sampler: "DPM++ SDE Karras"
+    strength: 0.5
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 30
+    speciality: "ultra_realism"
+    file_size: "6.62 GB"
+
+  albedobase_xl:
+    name: AlbedoBase XL v2.1
+    path: models/AlbedoBase_XL_v21.safetensors
+    model_page: https://civitai.com/models/140737
+    download_url: https://civitai.com/api/download/models/281176?type=Model&format=SafeTensor
+    description: High-quality SDXL base model with excellent skin rendering and natural color reproduction
+    recommended_cfg: 6‑8
+    recommended_steps: 25‑35
+    sampler: "DPM++ 2M Karras"
+    strength: 0.4
+    hires_fix: true
+    hires_upscaler: "ESRGAN_4x"
+    hires_steps: 20
+    speciality: "natural_skin_tones"
+    file_size: "6.62 GB"
+
+  dreamshaper_xl:
+    name: DreamShaper XL v2.1
+    path: models/DreamShaper_XL_v21.safetensors
+    model_page: https://civitai.com/models/112902
+    download_url: https://civitai.com/api/download/models/251662?type=Model&format=SafeTensor
+    description: Well-balanced SDXL model for realistic portraits with artistic flair
+    recommended_cfg: 5‑7
+    recommended_steps: 20‑30
+    sampler: "DPM++ 2M Karras"
+    strength: 0.35
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 20
+    speciality: "artistic_realism"
+    file_size: "6.46 GB"
+
+# ADetailer face detection models
+adetailer_models:
+  face_yolov8n:
+    name: "YOLOv8n Face Detection"
+    model_file: "face_yolov8n.pt"
+    download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n.pt"
+    description: "Fast and accurate face detection model"
+    confidence_threshold: 0.3
+
+  face_yolov8s:
+    name: "YOLOv8s Face Detection"
+    model_file: "face_yolov8s.pt"
+    download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8s.pt"
+    description: "Balanced speed/accuracy face detection"
+    confidence_threshold: 0.3
+
+  face_yolov8m:
+    name: "YOLOv8m Face Detection"
+    model_file: "face_yolov8m.pt"
+    download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
+    description: "High accuracy face detection model"
+    confidence_threshold: 0.3
+
+# Upscaler models
+upscaler_models:
+  esrgan_4x:
+    name: "ESRGAN 4x"
+    path: "models/ESRGAN/ESRGAN_4x.pth"
+    download_url: "https://github.com/xinntao/ESRGAN/releases/download/v0.0.0/ESRGAN_4x.pth"
+    description: "General purpose 4x upscaler"
+
+  ultrasharp_4x:
+    name: "4x-UltraSharp"
+    path: "models/ESRGAN/4x-UltraSharp.pth"
+    download_url: "https://mega.nz/file/qZRBmaIY#nIG8KyWFcGNTuMX_XNbJ_TaxQX_ckACh8kxOxnwQKhX"
+    description: "Ultra-sharp 4x upscaler for detailed images"
+
+# Model categories for easy selection
+categories:
+  photorealism:
+    - epicrealism_xl
+    - realism_engine_sdxl
+    - juggernaut_xl_v9
+  
+  fast_generation:
+    - realvisxl_v5_lightning
+    - dreamshaper_xl
+  
+  skin_specialists:
+    - albedobase_xl
+    - epicrealism_xl
+    - realism_engine_sdxl
+  
+  versatile:
+    - juggernaut_xl_v9
+    - dreamshaper_xl

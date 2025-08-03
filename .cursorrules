@@ -1,0 +1,49 @@
+---
+rule_type: always
+---
+
+You are building a cloud-based, photorealistic image enhancement pipeline for character datasets using Stable Diffusion XL and ADetailer, optimized for RunPod deployment.
+
+## ✅ Project Goals:
+- Enhance character face realism while preserving identity across multiple poses and angles.
+- Use **ADetailer** for high-quality facial correction.
+- Apply **SDXL img2img** with top-tier realism models: epiCRealism XL, RealVisXL V5.0 Lightning, Juggernaut XL v9.
+- Run entirely on **RunPod** GPU environment with **persistent disk** (no local storage required).
+
+## ⚙️ Project Structure:
+- `scripts/`
+  - `run_adetailer.py`: apply facial masking and correction with ADetailer
+  - `run_img2img.py`: SDXL-driven img2img refinement
+  - `preprocess_faces.py`: optional face detection/cropping with InsightFace or face_recognition
+  - `demo_pipeline.py`: CLI entrypoint that runs the full pipeline end-to-end (with arguments or interactive mode)
+- `config/`
+  - `models.yaml`: model metadata and download links
+  - `prompt_settings.yaml`: default prompt templates for realism
+- `utils/`
+  - `runpod_launcher.py`: main entrypoint for setting up Stable Diffusion WebUI, downloading models, and launching server
+- `assets/`
+  - `input/`, `output/`: folders for images before/after enhancement
+
+## 🧠 Rules and Conventions:
+- Do not store models locally; use persistent RunPod volume only.
+- Use `.safetensors` format exclusively.
+- All models must be downloaded on-demand using `runpod_launcher.py`.
+- No `startup.sh` – use Python for automation and better logging.
+
+## 🖼️ Processing Strategy:
+- Face-enhance input images using ADetailer (MTCNN or YOLO face model).
+- Apply SDXL img2img using configurable prompt + negative prompt from `prompt_settings.yaml`.
+- Save intermediate outputs (before ADetailer, after ADetailer, final result).
+- Optional: log identity preservation scores using CLIP similarity.
+
+## 🧪 GPU Requirements:
+- Target environment: RunPod (A100 / A6000 / 3090)
+- Minimum VRAM: 16GB+
+- SDXL + ADetailer enabled
+- WebUI command-line flags: `--xformers --enable-insecure-extension-access --theme dark`
+
+## 🧩 Additional Notes:
+- Prefer `.py` over `.ipynb` for automation and reproducibility
+- Use `argparse` for all CLI scripts
+- Use `logging` instead of `print()`
+- All code should be modular and LoRA‑ready
