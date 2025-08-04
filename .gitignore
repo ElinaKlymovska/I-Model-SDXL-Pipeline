@@ -152,3 +152,10 @@ temp/
 generated/
 cache/
 .cache/
+
+# Project specific cleanup
+*.zip
+test_*.py
+credentials.txt
+*_backup.*
+*_old.*
