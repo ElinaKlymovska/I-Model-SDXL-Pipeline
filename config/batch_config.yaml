@@ -1,0 +1,78 @@
+# Конфігурація для автоматичного batch процесора
+
+# Директорії
+input_dir: "assets/input"
+output_dir: "assets/output" 
+temp_dir: "assets/temp"
+download_dir: "assets/downloads"
+
+# Підтримувані формати
+supported_formats:
+  - ".jpg"
+  - ".jpeg" 
+  - ".png"
+  - ".webp"
+  - ".bmp"
+
+# Налаштування за замовчуванням
+default_model: "epicrealism_xl"
+default_preset: "professional_headshot"
+default_enhancement: "medium"
+
+# Продуктивність (для A40 оптимально 2-3 одночасно)
+max_workers: 2
+
+# Автоматичне очищення temp файлів
+auto_cleanup: true
+
+# Генерувати метадані обробки
+generate_metadata: true
+
+# Автоматичне створення ZIP пакетів
+auto_package: false
+
+# Максимальний розмір зображення (пікселі)
+max_image_size: 2048
+
+# Налаштування якості
+quality_settings:
+  jpeg_quality: 95
+  png_compression: 1
+
+# Налаштування для різних типів обробки
+batch_presets:
+  quick_enhance:
+    preset: "natural_candid"
+    enhancement: "light"
+    model: "realvisxl_v5_lightning"
+    description: "Швидке покращення для повсякденних фото"
+    
+  professional:
+    preset: "professional_headshot" 
+    enhancement: "medium"
+    model: "epicrealism_xl"
+    description: "Професійні портрети для бізнесу"
+    
+  artistic:
+    preset: "artistic_portrait"
+    enhancement: "strong"
+    model: "juggernaut_xl_v9"
+    description: "Артистичні портрети з драматичним освітленням"
+    
+  glamour:
+    preset: "glamour_portrait"
+    enhancement: "strong"
+    model: "epicrealism_xl"
+    description: "Гламурні портрети високої якості"
+
+# Налаштування завантаження/вивантаження
+upload_settings:
+  max_file_size: "50MB"
+  allowed_formats: [".jpg", ".jpeg", ".png", ".webp"]
+  auto_resize: true
+  
+download_settings:
+  create_thumbnails: true
+  thumbnail_size: 512
+  include_metadata: true
+  compression_level: 6
