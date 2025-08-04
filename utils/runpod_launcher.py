@@ -31,20 +31,6 @@ def check_gpu_compatibility():
         return False
     return "normal"
 
-def install_pytorch_nightly():
-    """Install PyTorch nightly for RTX 5090 support"""
-    print("🔄 Installing PyTorch nightly for RTX 5090 support...")
-    try:
-        subprocess.run([
-            "pip", "install", "--pre", "torch", "torchvision", "torchaudio", 
-            "--index-url", "https://download.pytorch.org/whl/nightly/cu124"
-        ], check=True)
-        print("✅ PyTorch nightly installed successfully")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to install PyTorch nightly: {e}")
-        return False
-
 def launch_webui_with_fallback():
     """Launch WebUI with automatic fallback to CPU mode if CUDA fails"""
     # Pre-check GPU compatibility
@@ -252,37 +238,15 @@ def main():
     parser.add_argument('--setup-only', action='store_true', help='Тільки налаштування (без завантаження моделей і запуску)')
     parser.add_argument('--launch', action='store_true', help='Тільки запуск WebUI (без setup)')
     parser.add_argument('--download-only', action='store_true', help='Тільки завантаження моделей')
-    parser.add_argument('--fix-pytorch', action='store_true', help='Встановити PyTorch nightly для RTX 5090')
-    parser.add_argument('--cpu-fallback', action='store_true', help='Використати CPU замість CUDA')
-    parser.add_argument('--force-cpu-rtx5090', action='store_true', help='Завжди використовувати CPU для RTX 5090 (рекомендовано)')
-    parser.add_argument('--reset-cuda', action='store_true', help='Скинути всі CUDA налаштування')
+    parser.add_argument('--force-cpu', action='store_true', help='Примусово використовувати CPU замість CUDA')
     
     args = parser.parse_args()
     
-    # Handle RTX 5090 fixes
-    if args.fix_pytorch:
-        print("🔧 Fixing PyTorch for RTX 5090...")
-        install_pytorch_nightly()
-        return
-    
-    # Handle CUDA reset
-    if args.reset_cuda:
-        print("🔄 Resetting CUDA environment...")
-        cuda_vars = ["CUDA_VISIBLE_DEVICES", "FORCE_CPU", "FORCE_CUDA", "CUDA_LAUNCH_BLOCKING", 
-                    "TORCH_USE_CUDA_DSA", "TORCH_CUDA_ARCH_LIST", "PYTORCH_CUDA_ALLOC_CONF"]
-        for var in cuda_vars:
-            if var in os.environ:
-                del os.environ[var]
-        print("✅ CUDA environment reset")
-        return
-    
-    # Handle CPU fallback modes
-    if args.cpu_fallback or args.force_cpu_rtx5090:
+    # Handle CPU fallback mode
+    if args.force_cpu:
         print("💻 Enabling CPU fallback mode...")
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
         os.environ["FORCE_CPU"] = "1"
-        if args.force_cpu_rtx5090:
-            print("⚠️  RTX 5090 CPU mode enabled - generation will be slower but stable")
     
     if args.launch:
         # Тільки запуск WebUI з автоматичним fallback
