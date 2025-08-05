@@ -102,6 +102,54 @@ models:
     speciality: "artistic_realism"
     file_size: "6.46 GB"
 
+  copax_realistic_xl:
+    name: Copax Realistic XL v5.0
+    path: models/Copax_Realistic_XL_v50.safetensors
+    model_page: https://civitai.com/models/130090
+    download_url: https://civitai.com/api/download/models/307905?type=Model&format=SafeTensor
+    description: Ultra-realistic SDXL model optimized for portrait photography and character realism
+    recommended_cfg: 6‑8
+    recommended_steps: 25‑35
+    sampler: "DPM++ SDE Karras"
+    strength: 0.4
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 25
+    speciality: "portrait_realism"
+    file_size: "6.62 GB"
+
+  proteus_xl:
+    name: Proteus XL v0.4
+    path: models/Proteus_XL_v04.safetensors
+    model_page: https://civitai.com/models/120919
+    download_url: https://civitai.com/api/download/models/288982?type=Model&format=SafeTensor
+    description: Advanced SDXL model with exceptional detail and photorealism for character faces
+    recommended_cfg: 7‑9
+    recommended_steps: 30‑40
+    sampler: "DPM++ 2M Karras"
+    strength: 0.45
+    hires_fix: true
+    hires_upscaler: "ESRGAN_4x"
+    hires_steps: 30
+    speciality: "detail_realism"
+    file_size: "6.62 GB"
+
+  newreality_xl:
+    name: NewReality XL v2.0
+    path: models/NewReality_XL_v20.safetensors
+    model_page: https://civitai.com/models/161068
+    download_url: https://civitai.com/api/download/models/384264?type=Model&format=SafeTensor
+    description: Cutting-edge photorealistic SDXL model specialized in facial details and skin textures
+    recommended_cfg: 5‑7
+    recommended_steps: 25‑35
+    sampler: "DPM++ SDE Karras" 
+    strength: 0.4
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 25
+    speciality: "skin_detail"
+    file_size: "6.46 GB"
+
 # ADetailer face detection models
 adetailer_models:
   face_yolov8n:
@@ -110,6 +158,8 @@ adetailer_models:
     download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8n.pt"
     description: "Fast and accurate face detection model"
     confidence_threshold: 0.3
+    speed: "very_fast"
+    accuracy: "good"
 
   face_yolov8s:
     name: "YOLOv8s Face Detection"
@@ -117,12 +167,49 @@ adetailer_models:
     download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8s.pt"
     description: "Balanced speed/accuracy face detection"
     confidence_threshold: 0.3
+    speed: "fast"
+    accuracy: "very_good"
 
   face_yolov8m:
     name: "YOLOv8m Face Detection"
     model_file: "face_yolov8m.pt"
     download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8m.pt"
     description: "High accuracy face detection model"
+    confidence_threshold: 0.3
+    speed: "medium"
+    accuracy: "excellent"
+
+  face_yolov8l:
+    name: "YOLOv8l Face Detection"
+    model_file: "face_yolov8l.pt"
+    download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8l.pt"
+    description: "Large model for maximum accuracy"
+    confidence_threshold: 0.25
+    speed: "slow"
+    accuracy: "superior"
+
+  face_yolov8x:
+    name: "YOLOv8x Face Detection"
+    model_file: "face_yolov8x.pt"
+    download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/face_yolov8x.pt"
+    description: "Extra large model for professional use"
+    confidence_threshold: 0.25
+    speed: "very_slow"
+    accuracy: "ultimate"
+
+  mediapipe_face:
+    name: "MediaPipe Face Detection"
+    model_file: "mediapipe_face_detection"
+    description: "Google MediaPipe face detection"
+    confidence_threshold: 0.5
+    speed: "very_fast"
+    accuracy: "good"
+    
+  hand_yolov8n:
+    name: "YOLOv8n Hand Detection"
+    model_file: "hand_yolov8n.pt"
+    download_url: "https://huggingface.co/Bingsu/adetailer/resolve/main/hand_yolov8n.pt"
+    description: "Hand detection for fixing hand artifacts"
     confidence_threshold: 0.3
 
 # Upscaler models
@@ -145,6 +232,9 @@ categories:
     - epicrealism_xl
     - realism_engine_sdxl
     - juggernaut_xl_v9
+    - copax_realistic_xl
+    - proteus_xl
+    - newreality_xl
   
   fast_generation:
     - realvisxl_v5_lightning
@@ -154,7 +244,48 @@ categories:
     - albedobase_xl
     - epicrealism_xl
     - realism_engine_sdxl
+    - newreality_xl
+    - copax_realistic_xl
+  
+  portrait_specialists:
+    - copax_realistic_xl
+    - proteus_xl
+    - epicrealism_xl
+    - newreality_xl
+  
+  detail_specialists:
+    - proteus_xl
+    - realism_engine_sdxl
+    - juggernaut_xl_v9
   
   versatile:
     - juggernaut_xl_v9
     - dreamshaper_xl
+    - albedobase_xl
+
+# Face detection model recommendations
+face_detection_presets:
+  fast_preview:
+    model: "face_yolov8n"
+    confidence: 0.3
+    description: "Fast preview processing"
+    
+  balanced_quality:
+    model: "face_yolov8s"
+    confidence: 0.3
+    description: "Good balance of speed and accuracy"
+    
+  high_accuracy:
+    model: "face_yolov8m"
+    confidence: 0.3
+    description: "High accuracy for production use"
+    
+  maximum_quality:
+    model: "face_yolov8l"
+    confidence: 0.25
+    description: "Maximum accuracy for professional work"
+    
+  ultra_precision:
+    model: "face_yolov8x"
+    confidence: 0.25
+    description: "Ultimate precision for critical applications"
