@@ -31,30 +31,23 @@ cd I-Model-SDXL-Pipeline
 python scripts/deploy_runpod_face_correction.py --preset professional --demo
 ```
 
-### ⚙️ Ручне Налаштування
+### ⚙️ Configuration Management
 
-```bash
-# 1. Клонувати та встановити
-git clone -b develop https://github.com/ElinaKlymovska/I-Model-SDXL-Pipeline.git
-cd I-Model-SDXL-Pipeline
-pip install -r requirements_runpod.txt
+Всі налаштування тепер зберігаються в config файлах:
 
-# 2. Налаштування з професійними моделями
-python utils/runpod_launcher.py --setup-only --preset professional --face-models
+- **`config/pipeline_settings.yaml`** - Основні налаштування pipeline
+- **`config/models.yaml`** - Конфігурація моделей
+- **`config/prompt_settings.yaml`** - Налаштування промптів та якості
+- **`.env`** - Тільки sensitive дані (API ключі)
 
-# 3. Завантажити моделі
-python utils/runpod_launcher.py --download-only --preset professional --face-models
+### 🎯 Топові SDXL Моделі
 
-# 4. Запустити WebUI
-python utils/runpod_launcher.py --launch
-```
+- **copax_realistic_xl** - Спеціаліст з портретної фотографії (default)
+- **proteus_xl** - Передова деталізація та фотореалізм
+- **newreality_xl** - Експерт з деталей обличчя та текстури шкіри
+- **epicrealism_xl** - Epic реалізм та високі деталі
 
-### 🌐 Доступ до WebUI
-
-- **URL**: `https://[ваш-pod-id]-3000.proxy.runpod.net`
-- **Local**: `http://localhost:3000` (якщо використовуєте SSH)
-
-### 🎨 Використання Face Correction
+### 🎭 Використання Face Correction
 
 #### 1. Демонстрації
 ```bash
@@ -63,38 +56,27 @@ python scripts/demo_face_correction.py
 
 # Порівняння моделей
 python scripts/demo_face_correction.py --demo models
-
-# Тест рівнів покращення
-python scripts/demo_face_correction.py --demo levels
 ```
 
-#### 2. Одне Зображення
+#### 2. Одне Зображення (з defaults з config)
 ```bash
-# Базове покращення
+# Базове покращення (використовує config defaults)
 python scripts/demo_pipeline.py --input photo.jpg --output ./results/
 
-# Професійний портрет
+# Налаштування перевизначають config
 python scripts/demo_pipeline.py --input photo.jpg --output ./results/ \
-  --character female_portrait --model copax_realistic_xl \
-  --enhancement strong --quality aggressive
+  --character male_portrait --enhancement strong
 ```
 
-#### 3. Пакетна Обробка
+#### 3. Enhanced ADetailer
 ```bash
-# Пакетна обробка з високою якістю
-python scripts/demo_pipeline.py --batch ./photos/ --output ./results/ \
-  --model proteus_xl --detail-model newreality_xl \
-  --enhancement strong --quality aggressive
+# Використовує defaults з config/pipeline_settings.yaml
+python scripts/enhanced_adetailer.py --input photo.jpg --output enhanced.jpg
 ```
 
-#### 4. Тільки ADetailer
-```bash
-# Швидка корекція лиця
-python scripts/enhanced_adetailer.py --input photo.jpg --output enhanced.jpg \
-  --model copax_realistic_xl --face-model face_yolov8m.pt --quality balanced
-```
+### 📦 Model Presets (з config)
 
-### 📦 Доступні Пресети
+Presets визначені в `config/pipeline_settings.yaml`:
 
 | Preset | Моделі | Швидкість | Якість |
 |--------|--------|-----------|--------|
@@ -102,82 +84,25 @@ python scripts/enhanced_adetailer.py --input photo.jpg --output enhanced.jpg \
 | `advanced` | epicrealism_xl + copax_realistic_xl | ⚡⚡ | ⭐⭐⭐⭐ |
 | `professional` | 4 топові моделі | ⚡ | ⭐⭐⭐⭐⭐ |
 
-### 🎯 Топові SDXL Моделі
+### ⚙️ Configuration Override
 
-- **copax_realistic_xl** - Спеціаліст з портретної фотографії
-- **proteus_xl** - Передова деталізація та фотореалізм
-- **newreality_xl** - Експерт з деталей обличчя та текстури шкіри
-- **epicrealism_xl** - Epic реалізм та високі деталі
-
-### 👁️ Face Detection Моделі
-
-- **face_yolov8s.pt** - Збалансований (рекомендовано)
-- **face_yolov8m.pt** - Висока точність
-- **face_yolov8l.pt** - Максимальна якість (повільніше)
-- **face_yolov8x.pt** - Професійна точність (найповільніше)
-
-### 🔧 Налаштування Якості
-
-#### Enhancement Levels:
-- `light` - М'яке покращення, швидко
-- `medium` - Збалансоване покращення (рекомендовано)
-- `strong` - Сильне покращення
-- `extreme` - Максимальне покращення
-
-#### Quality Presets:
-- `conservative` - Безпечні зміни, мінімальні артефакти
-- `balanced` - Гарний баланс якості/швидкості (рекомендовано)
-- `aggressive` - Максимальна якість, повільніше
-
-### 🎭 Типи Персонажів
-
-- `female_portrait` - Жіночий портрет (рекомендовано)
-- `male_portrait` - Чоловічий портрет
-- `child_portrait` - Дитячий портрет
-
-### 🚀 Performance Tips
-
-1. **GPU Рекомендації:**
-   - A40 (48GB VRAM) - ідеально ✅
-   - RTX 6000 Ada (48GB VRAM) - чудово ✅
-   - RTX A6000 (48GB VRAM) - відмінно ✅
-   - RTX 4090 (24GB VRAM) - добре ⚠️
-
-2. **Швидкість vs Якість:**
-   - Швидко: `--preset basic --enhancement light --quality conservative`
-   - Збалансовано: `--preset advanced --enhancement medium --quality balanced`
-   - Максимум: `--preset professional --enhancement strong --quality aggressive`
-
-3. **Network Volume:**
-   - Використовуйте Network Volume для зберігання моделей
-   - Економить час на перезавантаження
-   - Моделі: ~25GB, загалом потрібно 50GB+
-
-### 🔄 Restart та Troubleshooting
+Можна перевизначити будь-які налаштування:
 
 ```bash
-# Перезапуск WebUI
-python utils/runpod_launcher.py --launch
+# CLI аргументи перевизначають config
+python scripts/demo_pipeline.py --input photo.jpg --output ./results/ \
+  --model newreality_xl \
+  --face-model face_yolov8l.pt \
+  --enhancement extreme \
+  --quality aggressive
 
-# Швидкий старт
-bash start_auto_processing.sh
-
-# Оновити проект
-git pull origin develop
-
-# Примусово CPU режим (якщо проблеми з GPU)
-python utils/runpod_launcher.py --force-cpu --launch
+# Або змінити defaults у config/pipeline_settings.yaml
 ```
 
-### 📊 Моніторинг
+### 🚀 Ready to Go!
 
-- **GPU використання**: `nvidia-smi`
-- **WebUI логи**: дивіться Terminal під час запуску
-- **Process статус**: `ps aux | grep python`
-
-### 🎉 Ready to Go!
-
-Після завершення setup ваша система готова до професійної корекції лиця! 
+Після завершення setup ваша система готова до професійної корекції лиця з конфігурацією що зберігається в YAML файлах!
 
 🌐 **WebUI**: `https://[pod-id]-3000.proxy.runpod.net`
 🎭 **Demo**: `python scripts/demo_face_correction.py`
+⚙️ **Config**: редагуйте `config/pipeline_settings.yaml` для зміни defaults

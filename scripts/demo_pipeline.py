@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.logging import setup_logging
+from core.config_manager import get_config_manager
 from scripts.face_correction_pipeline import FaceCorrectionPipeline
 from scripts.enhanced_adetailer import EnhancedADetailer
 
@@ -153,6 +154,11 @@ def list_available_options():
 
 def main():
     """Main CLI interface"""
+    # Get default values from config
+    config_manager = get_config_manager()
+    defaults = config_manager.get_default_pipeline_config()
+    webui_url = config_manager.get_webui_url()
+    
     parser = argparse.ArgumentParser(
         description="Enhanced face correction pipeline with ADetailer + SDXL",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -187,23 +193,23 @@ Examples:
                        help="Run ADetailer only (skip pre/post processing)")
     
     # Model settings
-    parser.add_argument("--model", default="copax_realistic_xl",
-                       help="Primary SDXL model (default: copax_realistic_xl)")
-    parser.add_argument("--detail-model", 
-                       help="Detail refinement model (defaults to primary model)")
-    parser.add_argument("--face-model", default="face_yolov8m.pt",
-                       help="Face detection model (default: face_yolov8m.pt)")
+    parser.add_argument("--model", default=defaults.sdxl_model,
+                       help=f"Primary SDXL model (default: {defaults.sdxl_model})")
+    parser.add_argument("--detail-model", default=defaults.detail_model,
+                       help=f"Detail refinement model (default: {defaults.detail_model or 'same as primary'})")
+    parser.add_argument("--face-model", default=defaults.face_detection_model,
+                       help=f"Face detection model (default: {defaults.face_detection_model})")
     
     # Enhancement settings
-    parser.add_argument("--character", default="female_portrait",
+    parser.add_argument("--character", default=defaults.character_type,
                        choices=["female_portrait", "male_portrait", "child_portrait"],
-                       help="Character type (default: female_portrait)")
-    parser.add_argument("--enhancement", default="medium",
+                       help=f"Character type (default: {defaults.character_type})")
+    parser.add_argument("--enhancement", default=defaults.enhancement_level,
                        choices=["light", "medium", "strong", "extreme"],
-                       help="Enhancement level (default: medium)")
-    parser.add_argument("--quality", default="balanced",
+                       help=f"Enhancement level (default: {defaults.enhancement_level})")
+    parser.add_argument("--quality", default=defaults.quality_preset,
                        choices=["conservative", "balanced", "aggressive"],
-                       help="Quality preset (default: balanced)")
+                       help=f"Quality preset (default: {defaults.quality_preset})")
     
     # Custom prompts
     parser.add_argument("--custom-prompt", default="",
@@ -211,17 +217,20 @@ Examples:
     parser.add_argument("--custom-negative", default="",
                        help="Custom negative prompt")
     
-    # Pipeline options
-    parser.add_argument("--skip-preprocessing", action="store_true",
-                       help="Skip initial image enhancement")
-    parser.add_argument("--skip-postprocessing", action="store_true",
-                       help="Skip final refinement")
-    parser.add_argument("--no-intermediate", action="store_true",
-                       help="Don't save intermediate results")
+    # Pipeline options (defaults from config)
+    parser.add_argument("--skip-preprocessing", 
+                       action="store_true" if not defaults.skip_preprocessing else "store_false",
+                       help=f"Skip initial image enhancement (default: {defaults.skip_preprocessing})")
+    parser.add_argument("--skip-postprocessing", 
+                       action="store_true" if not defaults.skip_postprocessing else "store_false",
+                       help=f"Skip final refinement (default: {defaults.skip_postprocessing})")
+    parser.add_argument("--no-intermediate", 
+                       action="store_true" if defaults.save_intermediate else "store_false",
+                       help=f"Don't save intermediate results (default: save={defaults.save_intermediate})")
     
     # System settings
-    parser.add_argument("--webui-url", default="http://127.0.0.1:7860",
-                       help="WebUI API URL (default: http://127.0.0.1:7860)")
+    parser.add_argument("--webui-url", default=webui_url,
+                       help=f"WebUI API URL (default: {webui_url})")
     parser.add_argument("--verbose", action="store_true",
                        help="Enable verbose logging")
     

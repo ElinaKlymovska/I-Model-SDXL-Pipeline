@@ -1,9 +1,16 @@
 import os
+import sys
 import subprocess
 import requests
 import yaml
 import logging
 import argparse
+from pathlib import Path
+
+# Add parent directory to Python path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from core.config_manager import get_config_manager
 
 def check_gpu_compatibility():
     """Check GPU compatibility and provide diagnostics"""
@@ -111,8 +118,8 @@ def install_adetailer():
     os.makedirs(adetailer_models_dir, exist_ok=True)
     
     # Load ADetailer models from config
-    models_config = load_models_config()
-    adetailer_models = models_config.get("adetailer_models", {})
+    all_config = get_models_config()
+    adetailer_models = all_config.get("adetailer_models", {})
     
     for model_key, model_info in adetailer_models.items():
         if "download_url" in model_info and "model_file" in model_info:
@@ -132,15 +139,11 @@ def install_adetailer():
     
     print("✅ ADetailer setup completed")
 
-def load_models_config():
-    """Load models configuration from models.yaml"""
+def get_models_config():
+    """Get models configuration from ConfigManager"""
     try:
-        with open("config/models.yaml", "r") as f:
-            config = yaml.safe_load(f)
-        return config.get("models", {})
-    except FileNotFoundError:
-        logging.error("config/models.yaml not found!")
-        return {}
+        config_manager = get_config_manager()
+        return config_manager.load_models_config()
     except Exception as e:
         logging.error(f"Error loading models config: {e}")
         return {}
@@ -156,7 +159,8 @@ def download_models(specific_models=None):
     os.makedirs(model_dir, exist_ok=True)
 
     # Load models from configuration
-    models_config = load_models_config()
+    all_config = get_models_config()
+    models_config = all_config.get("models", {})
     
     models = {}
     
@@ -357,14 +361,21 @@ def main():
     # Handle preset configurations
     models_to_download = args.models
     if not models_to_download:
-        # Use preset-based model selection
-        preset_models = {
-            'basic': ['epicrealism_xl'],
-            'advanced': ['epicrealism_xl', 'copax_realistic_xl'],
-            'professional': ['epicrealism_xl', 'copax_realistic_xl', 'proteus_xl', 'newreality_xl']
-        }
-        models_to_download = preset_models.get(args.preset, preset_models['advanced'])
-        print(f"🎯 Використовую preset '{args.preset}': {', '.join(models_to_download)}")
+        # Use preset-based model selection from config
+        try:
+            config_manager = get_config_manager()
+            models_to_download = config_manager.get_model_preset_models(args.preset)
+            print(f"🎯 Використовую preset '{args.preset}': {', '.join(models_to_download)}")
+        except Exception as e:
+            logging.warning(f"Error loading preset models from config: {e}")
+            # Fallback to hardcoded presets
+            preset_models = {
+                'basic': ['epicrealism_xl'],
+                'advanced': ['epicrealism_xl', 'copax_realistic_xl'],
+                'professional': ['epicrealism_xl', 'copax_realistic_xl', 'proteus_xl', 'newreality_xl']
+            }
+            models_to_download = preset_models.get(args.preset, preset_models['advanced'])
+            print(f"🎯 Використовую fallback preset '{args.preset}': {', '.join(models_to_download)}")
     
     # Завантаження моделей
     if not args.download_only and not models_to_download and not args.face_models:

@@ -18,32 +18,21 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.logging import setup_logging
+from core.config_manager import get_config_manager
 
 logger = logging.getLogger(__name__)
 
 class EnhancedADetailer:
     """Enhanced ADetailer with configurable models and settings"""
     
-    def __init__(self, webui_url: str = "http://127.0.0.1:7860"):
-        self.webui_url = webui_url
-        self.models_config = self._load_models_config()
-        self.prompts_config = self._load_prompts_config()
+    def __init__(self, webui_url: str = None):
+        self.config_manager = get_config_manager()
+        self.webui_url = webui_url or self.config_manager.get_webui_url()
         
-    def _load_models_config(self) -> Dict[str, Any]:
-        """Load models configuration"""
-        config_path = Path(__file__).parent.parent / "config" / "models.yaml"
-        if config_path.exists():
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
-        return {}
-    
-    def _load_prompts_config(self) -> Dict[str, Any]:
-        """Load prompts configuration"""
-        config_path = Path(__file__).parent.parent / "config" / "prompt_settings.yaml"
-        if config_path.exists():
-            with open(config_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
-        return {}
+        # Load configurations through ConfigManager
+        self.models_config = self.config_manager.load_models_config()
+        self.prompts_config = self.config_manager.load_prompts_config()
+        self.pipeline_config = self.config_manager.load_pipeline_config()
     
     def _encode_image(self, image_path: str) -> str:
         """Encode image to base64"""
@@ -58,48 +47,32 @@ class EnhancedADetailer:
     
     def get_available_models(self) -> List[str]:
         """Get list of available SDXL models"""
-        models = self.models_config.get('models', {})
-        return list(models.keys())
+        return self.config_manager.get_available_models()
     
     def get_face_detection_models(self) -> List[str]:
         """Get list of available face detection models"""
-        adetailer_models = self.models_config.get('adetailer_models', {})
-        return [model_info['model_file'] for model_info in adetailer_models.values()]
+        return self.config_manager.get_available_face_models()
     
     def get_model_settings(self, model_name: str) -> Dict[str, Any]:
         """Get recommended settings for a specific model"""
-        models = self.models_config.get('models', {})
-        if model_name in models:
-            return models[model_name]
-        return {}
+        return self.config_manager.get_model_info(model_name)
     
     def get_prompt_preset(self, preset_name: str) -> Dict[str, Any]:
         """Get prompt preset configuration"""
-        presets = self.prompts_config.get('presets', {})
-        if preset_name in presets:
-            return presets[preset_name]
-        return {}
+        return self.config_manager.get_prompt_preset(preset_name)
     
     def get_adetailer_settings(self, preset: str = "balanced") -> Dict[str, Any]:
         """Get ADetailer settings for specified quality preset"""
-        adetailer_settings = self.prompts_config.get('adetailer_settings', {})
-        if preset in adetailer_settings:
-            return adetailer_settings[preset]
-        return adetailer_settings.get('balanced', {
-            'confidence': 0.3,
-            'denoising_strength': 0.4,
-            'mask_blur': 8,
-            'mask_padding': 64
-        })
+        return self.config_manager.get_adetailer_settings(preset)
     
     def enhance_face(self, 
                     image_path: str, 
                     output_path: str,
-                    model_name: str = "epicrealism_xl",
-                    face_detection_model: str = "face_yolov8s.pt",
-                    prompt_preset: str = "professional_headshot",
-                    enhancement_level: str = "medium",
-                    quality_preset: str = "balanced",
+                    model_name: str = None,
+                    face_detection_model: str = None,
+                    prompt_preset: str = None,
+                    enhancement_level: str = None,
+                    quality_preset: str = None,
                     custom_prompt: str = "",
                     custom_negative: str = "") -> bool:
         """
@@ -120,6 +93,15 @@ class EnhancedADetailer:
             True if successful, False otherwise
         """
         
+        # Get default values from config if not provided
+        pipeline_defaults = self.config_manager.get_default_pipeline_config()
+        
+        model_name = model_name or pipeline_defaults.sdxl_model
+        face_detection_model = face_detection_model or pipeline_defaults.face_detection_model
+        prompt_preset = prompt_preset or "professional_headshot"
+        enhancement_level = enhancement_level or pipeline_defaults.enhancement_level
+        quality_preset = quality_preset or pipeline_defaults.quality_preset
+        
         logger.info(f"🎭 Starting enhanced face correction: {image_path}")
         logger.info(f"📦 Model: {model_name}")
         logger.info(f"👁️ Face Detection: {face_detection_model}")
@@ -133,7 +115,7 @@ class EnhancedADetailer:
         
         # Get prompt configuration
         prompt_config = self.get_prompt_preset(prompt_preset)
-        enhancement_config = self.prompts_config.get('enhancement_levels', {}).get(enhancement_level, {})
+        enhancement_config = self.config_manager.get_enhancement_level_settings(enhancement_level)
         adetailer_config = self.get_adetailer_settings(quality_preset)
         
         # Build prompts
@@ -262,6 +244,10 @@ class EnhancedADetailer:
 
 def main():
     """Main CLI interface"""
+    # Get default values from config
+    config_manager = get_config_manager()
+    defaults = config_manager.get_default_pipeline_config()
+    
     parser = argparse.ArgumentParser(
         description="Enhanced ADetailer for professional face correction",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -273,7 +259,7 @@ Examples:
   # Professional headshot with high quality
   python enhanced_adetailer.py --input photo.jpg --output enhanced.jpg \\
     --model copax_realistic_xl --face-model face_yolov8m.pt \\
-    --preset professional_headshot --quality maximum_quality
+    --preset professional_headshot --quality aggressive
   
   # Custom artistic portrait
   python enhanced_adetailer.py --input photo.jpg --output enhanced.jpg \\
@@ -284,24 +270,25 @@ Examples:
     
     parser.add_argument("--input", required=True, help="Input image path")
     parser.add_argument("--output", required=True, help="Output image path")
-    parser.add_argument("--model", default="epicrealism_xl", 
-                       help="SDXL model to use (default: epicrealism_xl)")
-    parser.add_argument("--face-model", default="face_yolov8s.pt",
-                       help="Face detection model (default: face_yolov8s.pt)")
+    parser.add_argument("--model", default=defaults.sdxl_model, 
+                       help=f"SDXL model to use (default: {defaults.sdxl_model})")
+    parser.add_argument("--face-model", default=defaults.face_detection_model,
+                       help=f"Face detection model (default: {defaults.face_detection_model})")
     parser.add_argument("--preset", default="professional_headshot",
                        help="Prompt preset (default: professional_headshot)")
-    parser.add_argument("--enhancement", default="medium",
+    parser.add_argument("--enhancement", default=defaults.enhancement_level,
                        choices=["light", "medium", "strong", "extreme"],
-                       help="Enhancement level (default: medium)")
-    parser.add_argument("--quality", default="balanced",
+                       help=f"Enhancement level (default: {defaults.enhancement_level})")
+    parser.add_argument("--quality", default=defaults.quality_preset,
                        choices=["conservative", "balanced", "aggressive"],
-                       help="ADetailer quality preset (default: balanced)")
+                       help=f"ADetailer quality preset (default: {defaults.quality_preset})")
     parser.add_argument("--custom-prompt", default="",
                        help="Custom positive prompt (overrides preset)")
     parser.add_argument("--custom-negative", default="",
                        help="Custom negative prompt (overrides preset)")
-    parser.add_argument("--webui-url", default="http://127.0.0.1:7860",
-                       help="WebUI API URL (default: http://127.0.0.1:7860)")
+    webui_url = config_manager.get_webui_url()
+    parser.add_argument("--webui-url", default=webui_url,
+                       help=f"WebUI API URL (default: {webui_url})")
     parser.add_argument("--list-models", action="store_true",
                        help="List available models and exit")
     parser.add_argument("--list-face-models", action="store_true",

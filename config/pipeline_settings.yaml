@@ -1,0 +1,144 @@
+# Pipeline Settings Configuration
+# Enhanced Face Correction Pipeline настройки
+
+# Default Models
+default_models:
+  sdxl_model: "copax_realistic_xl"
+  detail_model: "proteus_xl"  # если null, используется sdxl_model
+  face_detection_model: "face_yolov8m.pt"
+
+# Default Character and Enhancement Settings
+default_processing:
+  character_type: "female_portrait"
+  enhancement_level: "medium"
+  quality_preset: "balanced"
+
+# Model Presets for different use cases
+model_presets:
+  basic:
+    name: "Basic Quality"
+    description: "Fast processing with good quality"
+    models: ["epicrealism_xl"]
+    recommended_for: "quick_preview"
+    
+  advanced:
+    name: "Advanced Quality" 
+    description: "Balanced quality and speed"
+    models: ["epicrealism_xl", "copax_realistic_xl"]
+    recommended_for: "production"
+    
+  professional:
+    name: "Professional Quality"
+    description: "Maximum quality for professional work"
+    models: ["epicrealism_xl", "copax_realistic_xl", "proteus_xl", "newreality_xl"]
+    recommended_for: "professional_work"
+
+# Face Detection Model Recommendations
+face_detection_recommendations:
+  fast_preview:
+    model: "face_yolov8n.pt"
+    description: "Fastest processing"
+    use_case: "preview"
+    
+  balanced:
+    model: "face_yolov8s.pt"
+    description: "Good balance of speed and accuracy"
+    use_case: "production"
+    recommended: true
+    
+  high_accuracy:
+    model: "face_yolov8m.pt"
+    description: "High accuracy processing"
+    use_case: "professional"
+    
+  maximum_quality:
+    model: "face_yolov8l.pt"
+    description: "Maximum accuracy (slower)"
+    use_case: "critical_work"
+    
+  ultra_precision:
+    model: "face_yolov8x.pt"
+    description: "Ultra precision (slowest)"
+    use_case: "research"
+
+# Pipeline Processing Options
+pipeline_options:
+  save_intermediate_results: true
+  skip_preprocessing: false
+  skip_postprocessing: false
+  
+  # Batch Processing
+  batch_processing:
+    max_batch_size: 50
+    auto_package_results: true
+    concurrent_processing: false
+    
+  # Output Settings
+  output:
+    format: "jpg"
+    quality: 95
+    preserve_metadata: true
+    
+  # Performance Settings
+  performance:
+    enable_hires_fix: true
+    use_xformers: true
+    enable_attention_slicing: true
+    enable_vae_slicing: true
+
+# WebUI Integration Settings
+webui_integration:
+  default_port: 3000
+  api_timeout: 600
+  max_retries: 3
+  retry_delay: 5
+  
+  # Default WebUI Settings
+  default_settings:
+    sampler: "DPM++ 2M Karras"
+    cfg_scale: 7
+    steps: 30
+    width: 768
+    height: 1024
+
+# GPU and Hardware Settings
+hardware:
+  # Auto-detection settings
+  auto_detect_gpu: true
+  
+  # GPU Compatibility
+  gpu_compatibility:
+    rtx_5090:
+      force_gpu_mode: false
+      special_flags: true
+      memory_optimization: true
+    
+    high_end:
+      memory_optimization: true
+      precision: "full"
+    
+    fallback:
+      force_cpu: false
+      cpu_threads: 4
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  verbose: false
+  save_processing_logs: true
+  log_file_max_size: "10MB"
+  log_retention_days: 30
+
+# Monitoring and Analytics
+monitoring:
+  enable_metrics: true
+  track_processing_time: true
+  track_model_performance: true
+  save_quality_metrics: true
+
+# Development and Debug Settings
+development:
+  debug_mode: false
+  save_debug_images: false
+  profile_performance: false
+  enable_experimental_features: false
