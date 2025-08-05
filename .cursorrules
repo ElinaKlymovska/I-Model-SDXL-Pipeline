@@ -1,0 +1,62 @@
+---
+rule_type: always
+---
+
+You are building a cloud-based, photorealistic image enhancement pipeline for character datasets using Stable Diffusion XL and ADetailer, optimized for RunPod deployment.
+
+## ✅ Project Goals:
+- Enhance character face realism while preserving identity across multiple poses and angles.
+- Use **ADetailer** for high-quality facial correction.
+- Apply **SDXL img2img** with top-tier realism models: epiCRealism XL, RealVisXL V5.0 Lightning, Juggernaut XL v9.
+- Run entirely on **RunPod** GPU environment with **persistent disk** (no local storage required).
+
+## ⚙️ Project Structure:
+- `scripts/`
+  - `enhanced_adetailer.py`: advanced facial masking and correction with ADetailer
+  - `face_correction_pipeline.py`: comprehensive 3-stage face correction pipeline
+  - `demo_face_correction.py`: demonstrations and model comparisons
+  - `demo_pipeline.py`: CLI entrypoint with enhanced face correction
+  - `run_adetailer.py`: legacy ADetailer script (deprecated)
+  - `run_img2img.py`: SDXL-driven img2img refinement
+  - `preprocess_faces.py`: optional face detection/cropping with InsightFace or face_recognition
+- `config/`
+  - `models.yaml`: model metadata and download links (ENHANCED with new SDXL models)
+  - `prompt_settings.yaml`: default prompt templates for realism
+- `utils/`
+  - `runpod_launcher.py`: main entrypoint for setting up Stable Diffusion WebUI, downloading models, and launching server
+- `assets/`
+  - `input/`, `output/`: folders for images before/after enhancement
+
+## 🧠 Rules and Conventions:
+- Do not store models locally; use persistent RunPod volume only.
+- Use `.safetensors` format exclusively.
+- All models must be downloaded on-demand using `runpod_launcher.py`.
+- No `startup.sh` – use Python for automation and better logging.
+
+## 🖼️ Processing Strategy:
+- **3-Stage Pipeline**: Preprocessing → Face Enhancement with ADetailer → Final Refinement
+- Face-enhance input images using ADetailer (YOLOv8n/s/m/l/x face models).
+- Apply SDXL img2img using configurable prompt + negative prompt from `prompt_settings.yaml`.
+- Save intermediate outputs (preprocessing, face corrected, final result).
+- Optional: log identity preservation scores using CLIP similarity.
+
+## 🎭 Enhanced Face Correction Features:
+- **Multiple SDXL Models**: Copax Realistic XL, Proteus XL, NewReality XL, EpiCRealism XL
+- **Advanced Face Detection**: YOLOv8n/s/m/l/x models with configurable confidence
+- **Quality Presets**: Conservative, Balanced, Aggressive enhancement levels
+- **Character-Specific Prompts**: Female, Male, Child portrait optimizations
+- **Batch Processing**: Process multiple images with consistent settings
+
+## 🧪 GPU Requirements:
+- Target environment: RunPod (A100 / A6000 / 3090)
+- Minimum VRAM: 16GB+
+- SDXL + ADetailer enabled
+- WebUI command-line flags: `--xformers --enable-insecure-extension-access --theme dark`
+
+## 🧩 Additional Notes:
+- Prefer `.py` over `.ipynb` for automation and reproducibility
+- Use `argparse` for all CLI scripts
+- Use `logging` instead of `print()`
+- All code should be modular and LoRA‑ready
+- Face correction pipeline supports single image and batch processing
+- Configuration-driven approach for models, prompts, and enhancement settings
