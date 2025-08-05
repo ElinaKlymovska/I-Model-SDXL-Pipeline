@@ -1,0 +1,23 @@
+# RunPod S3 Storage Configuration
+s3:
+  access_key: user_2zsiV0Fp3c8G1ZO6V5o4mot5zMU
+  secret_key: rps_3QKHGVAS0J7QI5BCH0XY1M4AK62YPUZRHTO4KX9Y1vtb05
+  endpoint: https://storage.runpod.io
+  bucket_name: runpod-storage
+  region: us-east-1
+
+# Network Volume Configuration  
+network_volume:
+  id: twx7pv7saa
+  name: i-model-storage
+  size: 50
+  region: EU-RO-1
+  mount_point: /workspace
+
+# Pod Configuration
+pod_defaults:
+  gpu_type: NVIDIA A40
+  container_disk: 15
+  cloud_type: COMMUNITY
+  docker_image: runpod/pytorch:2.1.1-py3.10-cuda12.1.1-devel-ubuntu22.04
+  ports: "3000/http,8888/http"

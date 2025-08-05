@@ -1,0 +1,238 @@
+# Prompt Settings for Face Enhancement Pipeline
+# Comprehensive templates for different enhancement scenarios
+
+# Default prompts for face enhancement
+default_prompts:
+  base_positive: &base_positive |
+    ultra-realistic portrait, natural skin texture, soft lighting, high detail, 
+    sharp focus, photographic quality, professional photography, 
+    detailed facial features, natural expressions, cinematic lighting
+  
+  base_negative: &base_negative |
+    (deformed, blurry, cartoon, unrealistic, disfigured), (digital artifacts, duplicate face), 
+    (oversaturated, overexposed, underexposed), (plastic skin, waxy skin), 
+    (asymmetric eyes, crossed eyes), (bad anatomy, extra limbs), 
+    (low quality, low resolution, pixelated), (makeup artifacts, heavy makeup effects),
+    (artificial lighting, harsh shadows), anime, illustration, painting
+
+# Character-specific prompts
+character_prompts:
+  female_portrait:
+    positive: |
+      beautiful woman, natural makeup, soft skin, expressive eyes, 
+      gentle smile, elegant features, natural hair, photorealistic skin texture,
+      detailed iris, natural eyebrows, subtle lip color, 
+      professional headshot, studio lighting, shallow depth of field
+    negative: *base_negative
+    
+  male_portrait:
+    positive: |
+      handsome man, natural skin texture, strong jawline, confident expression,
+      detailed facial hair, natural eyebrows, expressive eyes,
+      masculine features, professional portrait, natural lighting,
+      sharp focus, photographic quality
+    negative: *base_negative
+    
+  child_portrait:
+    positive: |
+      cute child, innocent expression, bright eyes, natural skin,
+      youthful features, gentle smile, soft lighting,
+      natural hair texture, candid photography style,
+      warm lighting, shallow depth of field
+    negative: |
+      <<: *base_negative
+      (aging, mature features, adult features), (heavy makeup, cosmetics)
+
+# Enhancement strength levels
+enhancement_levels:
+  light:
+    description: "Minimal enhancement, preserves original features"
+    denoising_strength: 0.2
+    cfg_scale: 5
+    steps: 20
+    
+  medium:
+    description: "Balanced enhancement with good detail improvement"
+    denoising_strength: 0.4
+    cfg_scale: 7
+    steps: 30
+    
+  strong:
+    description: "Significant enhancement, may alter features more"
+    denoising_strength: 0.6
+    cfg_scale: 9
+    steps: 40
+    
+  extreme:
+    description: "Maximum enhancement, substantial feature changes"
+    denoising_strength: 0.8
+    cfg_scale: 11
+    steps: 50
+
+# Model-specific prompt adjustments
+model_specific:
+  epicrealism_xl:
+    positive_suffix: ", epic realism style, cinematic photography"
+    negative_suffix: ", cartoon, anime, illustration"
+    recommended_cfg: 6
+    recommended_steps: 30
+    
+  realvisxl_v5_lightning:
+    positive_suffix: ", realistic vision, natural photography"
+    negative_suffix: ", artificial, synthetic"
+    recommended_cfg: 1.5
+    recommended_steps: 8
+    
+  juggernaut_xl_v9:
+    positive_suffix: ", juggernaut realism, photographic detail"
+    negative_suffix: ", artistic stylization, fantasy"
+    recommended_cfg: 5
+    recommended_steps: 35
+    
+  realism_engine_sdxl:
+    positive_suffix: ", realism engine, ultra photorealistic"
+    negative_suffix: ", digital art, CGI"
+    recommended_cfg: 8
+    recommended_steps: 40
+    
+  albedobase_xl:
+    positive_suffix: ", natural skin tones, albedo lighting"
+    negative_suffix: ", oversaturated, color distortion"
+    recommended_cfg: 7
+    recommended_steps: 25
+
+# Lighting and style variations
+lighting_styles:
+  natural:
+    positive: "natural lighting, soft shadows, window light, daylight"
+    negative: "artificial lighting, harsh shadows, neon lighting"
+    
+  studio:
+    positive: "studio lighting, professional photography, soft box lighting"
+    negative: "amateur lighting, harsh flash, overexposed"
+    
+  golden_hour:
+    positive: "golden hour lighting, warm tones, sunset lighting, rim lighting"
+    negative: "cold lighting, blue tones, harsh midday sun"
+    
+  dramatic:
+    positive: "dramatic lighting, chiaroscuro, strong contrast, moody lighting"
+    negative: "flat lighting, low contrast, overexposed highlights"
+
+# Age-specific enhancements
+age_groups:
+  young_adult:
+    positive: "youthful skin, clear complexion, vibrant eyes, smooth skin texture"
+    negative: "aging signs, wrinkles, blemishes, tired eyes"
+    
+  mature_adult:
+    positive: "mature features, distinguished appearance, natural aging, dignified"
+    negative: "artificial youth, over-smoothed skin, unrealistic features"
+    
+  elderly:
+    positive: "wise expression, natural aging, character lines, dignified elderly"
+    negative: "artificial smoothing, inappropriate youthfulness"
+
+# Ethnic and cultural considerations
+ethnicity_aware:
+  general:
+    positive: "authentic ethnic features, natural skin tone, cultural accuracy"
+    negative: "ethnic stereotypes, inaccurate features, cultural misrepresentation"
+
+# Quality and resolution settings
+quality_settings:
+  high_quality:
+    positive_suffix: ", 8K resolution, ultra-high detail, masterpiece quality"
+    hires_fix: true
+    hires_upscaler: "4x-UltraSharp"
+    hires_steps: 25
+    
+  standard_quality:
+    positive_suffix: ", high resolution, detailed"
+    hires_fix: false
+    
+  preview_quality:
+    positive_suffix: ", good quality"
+    hires_fix: false
+    steps: 15
+
+# Expression-specific prompts
+expressions:
+  neutral:
+    positive: "neutral expression, calm demeanor, relaxed face"
+    
+  smiling:
+    positive: "gentle smile, natural smile, warm expression, happy eyes"
+    negative: "forced smile, unnatural grin, exaggerated expression"
+    
+  serious:
+    positive: "serious expression, focused gaze, professional demeanor"
+    
+  contemplative:
+    positive: "thoughtful expression, contemplative gaze, introspective"
+
+# Background and composition
+backgrounds:
+  portrait:
+    positive: "portrait photography, blurred background, shallow depth of field"
+    negative: "distracting background, busy background"
+    
+  studio:
+    positive: "studio background, clean background, professional backdrop"
+    
+  natural:
+    positive: "natural environment, outdoor setting, environmental portrait"
+
+# Preset combinations for common use cases
+presets:
+  professional_headshot:
+    positive: |
+      professional headshot, business portrait, clean appearance,
+      confident expression, studio lighting, neutral background,
+      sharp focus, high-quality photography, professional attire
+    negative: *base_negative
+    enhancement_level: "medium"
+    
+  artistic_portrait:
+    positive: |
+      artistic portrait, creative lighting, expressive pose,
+      artistic composition, fine art photography, dramatic shadows,
+      creative expression, emotional depth
+    negative: *base_negative
+    enhancement_level: "light"
+    
+  natural_candid:
+    positive: |
+      candid photography, natural expression, lifestyle portrait,
+      authentic moment, natural lighting, real emotion,
+      documentary style, spontaneous expression
+    negative: *base_negative
+    enhancement_level: "light"
+    
+  glamour_portrait:
+    positive: |
+      glamour portrait, professional makeup, elegant styling,
+      beauty photography, sophisticated lighting, polished appearance,
+      high-fashion aesthetic, magazine quality
+    negative: *base_negative
+    enhancement_level: "medium"
+
+# ADetailer specific settings
+adetailer_settings:
+  conservative:
+    confidence: 0.3
+    denoising_strength: 0.3
+    mask_blur: 4
+    mask_padding: 32
+    
+  balanced:
+    confidence: 0.3
+    denoising_strength: 0.4
+    mask_blur: 8
+    mask_padding: 64
+    
+  aggressive:
+    confidence: 0.2
+    denoising_strength: 0.6
+    mask_blur: 12
+    mask_padding: 96
