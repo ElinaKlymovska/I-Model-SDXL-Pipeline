@@ -105,6 +105,32 @@ def install_adetailer():
     if not os.path.exists(ext_path):
         print("🔄 Installing ADetailer extension...")
         subprocess.run(["git", "clone", "https://github.com/Bing-su/adetailer", ext_path])
+    
+    # Download ADetailer models
+    adetailer_models_dir = "sd-webui/models/adetailer"
+    os.makedirs(adetailer_models_dir, exist_ok=True)
+    
+    # Load ADetailer models from config
+    models_config = load_models_config()
+    adetailer_models = models_config.get("adetailer_models", {})
+    
+    for model_key, model_info in adetailer_models.items():
+        if "download_url" in model_info and "model_file" in model_info:
+            model_path = os.path.join(adetailer_models_dir, model_info["model_file"])
+            if not os.path.exists(model_path):
+                print(f"📥 Downloading ADetailer model: {model_info['model_file']}")
+                try:
+                    response = requests.get(model_info["download_url"], stream=True, timeout=60)
+                    response.raise_for_status()
+                    with open(model_path, "wb") as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                    print(f"✅ {model_info['model_file']} downloaded")
+                except Exception as e:
+                    print(f"❌ Failed to download {model_info['model_file']}: {e}")
+    
+    print("✅ ADetailer setup completed")
 
 def load_models_config():
     """Load models configuration from models.yaml"""
@@ -283,14 +309,18 @@ def launch_webui():
     subprocess.run(["python3", "launch.py"])
 
 def main():
-    parser = argparse.ArgumentParser(description='RunPod Launcher для I, Model SDXL Pipeline')
-    parser.add_argument('--models', nargs='*', help='Завантажити конкретні моделі (наприклад: epicrealism_xl realvisxl_v5_lightning)')
+    parser = argparse.ArgumentParser(description='RunPod Launcher для I, Model SDXL Pipeline з Enhanced Face Correction')
+    parser.add_argument('--models', nargs='*', help='Завантажити конкретні моделі (epicrealism_xl, copax_realistic_xl, proteus_xl, newreality_xl)')
+    parser.add_argument('--face-models', action='store_true', help='Завантажити всі моделі для face detection')
+    parser.add_argument('--preset', choices=['basic', 'advanced', 'professional'], default='advanced',
+                       help='Preset конфігурація: basic (швидко), advanced (збалансовано), professional (максимум)')
     parser.add_argument('--setup-only', action='store_true', help='Тільки налаштування (без завантаження моделей і запуску)')
     parser.add_argument('--launch', action='store_true', help='Тільки запуск WebUI (без setup)')
     parser.add_argument('--download-only', action='store_true', help='Тільки завантаження моделей')
     parser.add_argument('--force-cpu', action='store_true', help='Примусово використовувати CPU замість CUDA')
     parser.add_argument('--force-gpu-rtx5090', action='store_true', help='Примусово спробувати GPU режим для RTX 5090 (експериментально)')
     parser.add_argument('--upgrade-pytorch', action='store_true', help='Оновити PyTorch для кращої підтримки RTX 5090')
+    parser.add_argument('--demo', action='store_true', help='Запустити демонстрацію face correction після setup')
     
     args = parser.parse_args()
     
@@ -324,11 +354,27 @@ def main():
         print("✅ Налаштування завершено!")
         return
     
+    # Handle preset configurations
+    models_to_download = args.models
+    if not models_to_download:
+        # Use preset-based model selection
+        preset_models = {
+            'basic': ['epicrealism_xl'],
+            'advanced': ['epicrealism_xl', 'copax_realistic_xl'],
+            'professional': ['epicrealism_xl', 'copax_realistic_xl', 'proteus_xl', 'newreality_xl']
+        }
+        models_to_download = preset_models.get(args.preset, preset_models['advanced'])
+        print(f"🎯 Використовую preset '{args.preset}': {', '.join(models_to_download)}")
+    
     # Завантаження моделей
-    if not args.download_only and not args.models:
-        print("ℹ️  Запуск без завантаження моделей. Використайте --models для завантаження.")
+    if not args.download_only and not models_to_download and not args.face_models:
+        print("ℹ️  Запуск без завантаження моделей.")
     else:
-        download_models(args.models)
+        if models_to_download:
+            download_models(models_to_download)
+        if args.face_models:
+            print("🎭 Завантажую ADetailer face detection моделі...")
+            # Face models are downloaded in install_adetailer()
     
     if args.download_only:
         print("✅ Завантаження моделей завершено!")
@@ -337,6 +383,17 @@ def main():
     # Повний запуск з автоматичним fallback
     print("🌐 Запуск Stable Diffusion WebUI...")
     launch_webui_with_fallback()
+    
+    # Run demo if requested
+    if args.demo:
+        print("🎭 Запуск демонстрації face correction...")
+        try:
+            subprocess.run(["python", "scripts/demo_face_correction.py", "--demo", "single"], 
+                         cwd="..", check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️  Демонстрація не вдалась: {e}")
+        except FileNotFoundError:
+            print("⚠️  Файл демонстрації не знайдено")
 
 if __name__ == "__main__":
     main()
