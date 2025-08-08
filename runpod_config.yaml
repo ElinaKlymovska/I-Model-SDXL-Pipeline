@@ -1,0 +1,22 @@
+workspace: /workspace
+volumes:
+  - mountPath: /workspace
+    name: i-model-storage
+ports:
+  - containerPort: 7860
+    protocol: TCP
+    type: HTTP
+entrypoint:
+  - bash
+  - -lc
+  - |
+    set -e
+    mkdir -p /workspace/data/input /workspace/data/outputs /workspace/logs
+    echo "Starting WebUI..." | tee -a /workspace/logs/start.log
+    python3 /workspace/hyperrealistic/pipelines/start_webui.py &
+    sleep 45
+    echo "Running batch..." | tee -a /workspace/logs/start.log
+    python3 /workspace/hyperrealistic/pipelines/process_faces.py --model gonzalomo_xl --per-image 1 --input /workspace/data/input --output /workspace/data/outputs
+    echo "Done" | tee -a /workspace/logs/start.log
+environment: environment.yml
+

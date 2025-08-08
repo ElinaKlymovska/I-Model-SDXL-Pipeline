@@ -1,0 +1,32 @@
+# Generated .gitignore
+
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+.env
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+*.log
+
+# Project
+models/
+data/output_images/
+project_files.tar.gz
+*.tar.gz
+runpod-volume/
+node_modules/
+stable-diffusion-webui/
+
+# IDE
+.vscode/
+.idea/
